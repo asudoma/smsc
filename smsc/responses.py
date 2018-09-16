@@ -77,6 +77,10 @@ class Response(metaclass=ABCMeta):
         # noinspection PyTypeChecker
         return SMSCError(self.__code, self.__error)
 
+    @property
+    def has_error(self):
+        return self.error is not None
+
 
 class SendResponse(Response):
     """
