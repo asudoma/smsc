@@ -75,6 +75,23 @@ def test_sms_simple(client: SMSC, params: dict):
 
 
 # noinspection PyShadowingNames
+def test_job(client: SMSC, params: dict):
+    assert os.environ.get('PHONE')
+    to = os.environ['PHONE']
+    message_text = 'test'
+    f = furl(URL).add(path="jobs.php").add(params).add({'phones': to, 'mes': message_text, 'cost': 2})
+    with requests_mock.Mocker() as m:
+        m.get(f.url, json={'id': 1, 'cost': 1.44},
+              headers={'Content-Type': 'application/json; charset=utf-8'})
+        res = client.send(to=os.environ['PHONE'], message=SMSMessage(text='test'))
+    assert res is not None
+    assert isinstance(res, SendResponse)
+    assert str(res) == "<SendResponse id=1 cost=1.44>"
+    assert res.message_id == 1
+    assert res.cost == 1.44
+
+
+# noinspection PyShadowingNames
 def test_sms_simple_fail(client: SMSC, params: dict):
     assert os.environ.get('PHONE')
     to = os.environ['PHONE']

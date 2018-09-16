@@ -83,6 +83,32 @@ class SMSC:
             raise SendError(str([r.status_code, r.headers, r.text]))
         return SendResponse(r.json())
 
+    def send_job(self, to: Union[str, List[str]], message: Message) -> SendResponse:
+        """
+        Send the job.
+
+        Usage::
+
+            >>> from smsc.messages import SMSMessage
+            >>> from smsc.api import SMSC
+            >>> client = SMSC(login='alexey', password='psw')
+            >>> res = client.send_job(to='79999999999', message=SMSMessage(text='Hello, World!'))  # doctest: +SKIP
+            >>> res.cost  # doctest: +SKIP
+            1.44
+
+        :param str|List[str] to: Phone number or list of phone numbers
+        :param Message message: Concrete message instance for sending
+        :return: Returns the API answer wrapped in the `SendResponse` object
+        :rtype: SendResponse
+        """
+        f = furl(SMSC._url).add(path="jobs.php").add({'add': 1}).add(self.__auth).add({"sender": self.__sender})
+        f.add({"cost": 1, "phones": isinstance(to, str) and to or ",".join(to)})
+        f.add(message.encode())
+        r = requests.get(f.url)
+        if r.status_code != 200:
+            raise SendError(str([r.status_code, r.headers, r.text]))
+        return SendResponse(r.json())
+
     def get_cost(self, to: Union[str, List[str]], message: Message) -> CostResponse:
         """
         Retrieve cost of the message.
